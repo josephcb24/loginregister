@@ -1,13 +1,16 @@
 <?php
-if (!defined('PASSWORD_BCRYPT')) {
-        define('PASSWORD_BCRYPT', 1);
-        define('PASSWORD_DEFAULT', PASSWORD_BCRYPT);
-}
+/**
+ * A Compatibility library with PHP 5.5's simplified password hashing API.
+ *
+ * @author Anthony Ferrara <ircmaxell@php.net>
+ * @license http://www.opensource.org/licenses/mit-license.html MIT License
+ * @copyright 2012 The Authors
+ */
 
-Class Password {
+if (!defined('PASSWORD_DEFAULT')) {
 
-    public function __construct() {}
-
+    define('PASSWORD_BCRYPT', 1);
+    define('PASSWORD_DEFAULT', PASSWORD_BCRYPT);
 
     /**
      * Hash the password using the specified algorithm
@@ -32,7 +35,7 @@ Class Password {
             return null;
         }
         switch ($algo) {
-            case PASSWORD_BCRYPT :
+            case PASSWORD_BCRYPT:
                 // Note that this is a C constant, but not exposed to PHP, so we don't define it here.
                 $cost = 10;
                 if (isset($options['cost'])) {
@@ -48,27 +51,27 @@ Class Password {
                 $required_salt_len = 22;
                 $hash_format = sprintf("$2y$%02d$", $cost);
                 break;
-            default :
+            default:
                 trigger_error(sprintf("password_hash(): Unknown password hashing algorithm: %s", $algo), E_USER_WARNING);
                 return null;
         }
         if (isset($options['salt'])) {
             switch (gettype($options['salt'])) {
-                case 'NULL' :
-                case 'boolean' :
-                case 'integer' :
-                case 'double' :
-                case 'string' :
-                    $salt = (string)$options['salt'];
+                case 'NULL':
+                case 'boolean':
+                case 'integer':
+                case 'double':
+                case 'string':
+                    $salt = (string) $options['salt'];
                     break;
-                case 'object' :
+                case 'object':
                     if (method_exists($options['salt'], '__tostring')) {
-                        $salt = (string)$options['salt'];
+                        $salt = (string) $options['salt'];
                         break;
                     }
-                case 'array' :
-                case 'resource' :
-                default :
+                case 'array':
+                case 'resource':
+                default:
                     trigger_error('password_hash(): Non-string salt parameter supplied', E_USER_WARNING);
                     return null;
             }
@@ -147,7 +150,11 @@ Class Password {
      * @return array The array of information about the hash.
      */
     function password_get_info($hash) {
-        $return = array('algo' => 0, 'algoName' => 'unknown', 'options' => array(), );
+        $return = array(
+            'algo' => 0,
+            'algoName' => 'unknown',
+            'options' => array(),
+        );
         if (substr($hash, 0, 4) == '$2y$' && strlen($hash) == 60) {
             $return['algo'] = PASSWORD_BCRYPT;
             $return['algoName'] = 'bcrypt';
@@ -174,7 +181,7 @@ Class Password {
             return true;
         }
         switch ($algo) {
-            case PASSWORD_BCRYPT :
+            case PASSWORD_BCRYPT:
                 $cost = isset($options['cost']) ? $options['cost'] : 10;
                 if ($cost != $info['options']['cost']) {
                     return true;
@@ -192,7 +199,7 @@ Class Password {
      *
      * @return boolean If the password matches the hash
      */
-    public function password_verify($password, $hash) {
+    function password_verify($password, $hash) {
         if (!function_exists('crypt')) {
             trigger_error("Crypt must be loaded for password_verify to function", E_USER_WARNING);
             return false;
@@ -209,5 +216,4 @@ Class Password {
 
         return $status === 0;
     }
-
 }
